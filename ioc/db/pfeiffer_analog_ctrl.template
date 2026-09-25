@@ -1,0 +1,38 @@
+##################################################################
+# Pfeiffer numeric parameter, read/write (types 1 u_integer, 2 u_real)
+#   -SP : setpoint. Reads the pump's value at IOC start (@init),
+#         clamped to DRVL..DRVH (take them from the manual).
+#         Goes INVALID if the pump rejects the write.
+#   -RB : periodic readback, re-read right after every write
+#         (FLNK/PRIO: see pfeiffer_bool_ctrl.template)
+# Macros: P, PORT, ADDR  (from st.cmd)
+#         NAME, PARAM, DESC, EGU, DRVL, DRVH
+#         ASLO (1 for u_integer, 0.01 for u_real), PREC
+#         SCAN (default 2 second)
+##################################################################
+
+record(ao, "$(P)$(NAME)-SP") {
+    field(DESC, "$(DESC)")
+    field(DTYP, "stream")
+    field(PRIO, "HIGH")
+    field(OUT,  "@pfeiffer.proto setNum($(ADDR),$(PARAM)) $(PORT)")
+    field(EGU,  "$(EGU)")
+    field(ASLO, "$(ASLO=1)")
+    field(PREC, "$(PREC=0)")
+    field(DRVL, "$(DRVL)")
+    field(DRVH, "$(DRVH)")
+    field(LOPR, "$(DRVL)")
+    field(HOPR, "$(DRVH)")
+    field(FLNK, "$(P)$(NAME)-RB.PROC CA")
+}
+
+record(ai, "$(P)$(NAME)-RB") {
+    field(DESC, "$(DESC)")
+    field(DTYP, "stream")
+    field(PRIO, "MEDIUM")
+    field(INP,  "@pfeiffer.proto getNum($(ADDR),$(PARAM)) $(PORT)")
+    field(SCAN, "$(SCAN=2 second)")
+    field(EGU,  "$(EGU)")
+    field(ASLO, "$(ASLO=1)")
+    field(PREC, "$(PREC=0)")
+}

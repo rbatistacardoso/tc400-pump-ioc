@@ -1,0 +1,50 @@
+##################################################################
+# Pfeiffer TC 400 — parameter table
+# Parameter numbers, data types and ranges from the TC 400 manual,
+# chapter 6 (Parameter set).
+# P, PORT, ADDR come from dbLoadTemplate() in st.cmd.
+##################################################################
+
+# --- Control, type 0 (boolean_old) ------------------------------
+file "pfeiffer_bool_ctrl.template" {
+    pattern { NAME,           PARAM, DESC                 }
+            { Standby,        002,   "Standby"            }
+            { PumpStation,    010,   "Pumping station"    }
+            { MotorPump,      023,   "Motor vacuum pump"  }
+}
+
+# --- Control, type 7 (u_short_int used as 0/1) ------------------
+file "pfeiffer_bool_ctrl.template" {
+    pattern { NAME,           PARAM, TYPE,      DESC                          }
+            { SpdSetMode,     026,   ShortBool, "Rotation speed setting mode" }
+}
+
+# --- Monitor, type 0 (boolean_old) ------------------------------
+file "pfeiffer_bool_mon.template" {
+    pattern { NAME,           PARAM, ZNAM, ONAM, DESC                   }
+            { Heating,        001,   Off,  On,   "Heating"              }
+            { RunUpTimeCtrl,  004,   Off,  On,   "Run-up time control"  }
+            { Venting,        012,   No,   Yes,  "Enable venting"       }
+            { SealingGas,     050,   Off,  On,   "Sealing gas"          }
+            { SpdAttained,    306,   No,   Yes,  "Target speed reached" }
+}
+
+# --- Monitor, types 1/2 (u_integer / u_real) --------------------
+file "pfeiffer_analog_mon.template" {
+    pattern { NAME,           PARAM, EGU,  ASLO, PREC, DESC                      }
+            { RotSpeed,       309,   Hz,   1,    0,    "Actual rotation speed"   }
+            { RotSpeedTarget, 308,   Hz,   1,    0,    "Set rotation speed"      }
+            { DrvCurrent,     310,   A,    0.01, 2,    "Drive current"           }
+            { DrvVoltage,     313,   V,    0.01, 2,    "Drive voltage"           }
+            { ElecTemp,       326,   degC, 1,    0,    "Electronics temperature" }
+            { PumpTemp,       330,   degC, 1,    0,    "Pump bottom temperature" }
+            { MotorTemp,      346,   degC, 1,    0,    "Motor temperature"       }
+}
+
+# --- Control, type 2 (u_real) -----------------------------------
+# P707 only takes effect when SpdSetMode (P026) is On.
+# EGU "%" must be quoted, or the substitution parser rejects the row.
+file "pfeiffer_analog_ctrl.template" {
+    pattern { NAME,           PARAM, EGU, ASLO, PREC, DRVL, DRVH, DESC                             }
+            { SpdSetValue,    707,   "%", 0.01, 2,    20,   100,  "Speed set value (setting mode)" }
+}

@@ -1,0 +1,10 @@
+services:
+  tc400-ioc:
+    build: .
+    image: tc400-pump-ioc
+    container_name: tc400-ioc
+    env_file: .env
+    network_mode: host     # Channel Access needs UDP broadcast
+    stdin_open: true       # keep the iocsh open (the IOC exits on EOF)
+    tty: true
+    restart: unless-stopped

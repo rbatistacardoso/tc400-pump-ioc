@@ -1,0 +1,17 @@
+##################################################################
+# Pfeiffer numeric parameter, read-only (types 1 u_integer, 2 u_real)
+# Macros: P, PORT, ADDR  (from st.cmd)
+#         NAME, PARAM, DESC, EGU
+#         ASLO (1 for u_integer, 0.01 for u_real), PREC
+#         SCAN (default 1 second)
+##################################################################
+
+record(ai, "$(P)$(NAME)-Mon") {
+    field(DESC, "$(DESC)")
+    field(DTYP, "stream")
+    field(INP,  "@pfeiffer.proto getNum($(ADDR),$(PARAM)) $(PORT)")
+    field(SCAN, "$(SCAN=1 second)")
+    field(EGU,  "$(EGU)")
+    field(ASLO, "$(ASLO=1)")
+    field(PREC, "$(PREC=0)")
+}

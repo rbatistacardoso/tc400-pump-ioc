@@ -1,0 +1,34 @@
+##################################################################
+# Pfeiffer boolean parameter, read/write
+#   -Sel : setpoint. Reads the pump's value at IOC start (@init).
+#          Goes INVALID if the pump rejects the write.
+#   -Sts : periodic readback (also catches front-panel changes),
+#          re-read right after every write.
+# The FLNK must be ".PROC CA": a plain DB FLNK does nothing when the
+# target isn't Passive, and a CA put to PROC sets RPRO if -Sts is busy.
+# PRIO HIGH/MEDIUM put the write and its readback ahead of the scans.
+# Macros: P, PORT, ADDR  (from st.cmd)
+#         NAME, PARAM, DESC
+#         TYPE = Bool (type 0, default) | ShortBool (type 7, 0/1)
+#         SCAN (default 2 second)
+##################################################################
+
+record(bo, "$(P)$(NAME)-Sel") {
+    field(DESC, "$(DESC)")
+    field(DTYP, "stream")
+    field(PRIO, "HIGH")
+    field(OUT,  "@pfeiffer.proto set$(TYPE=Bool)($(ADDR),$(PARAM)) $(PORT)")
+    field(ZNAM, "$(ZNAM=Off)")
+    field(ONAM, "$(ONAM=On)")
+    field(FLNK, "$(P)$(NAME)-Sts.PROC CA")
+}
+
+record(bi, "$(P)$(NAME)-Sts") {
+    field(DESC, "$(DESC)")
+    field(DTYP, "stream")
+    field(PRIO, "MEDIUM")
+    field(INP,  "@pfeiffer.proto get$(TYPE=Bool)($(ADDR),$(PARAM)) $(PORT)")
+    field(SCAN, "$(SCAN=2 second)")
+    field(ZNAM, "$(ZNAM=Off)")
+    field(ONAM, "$(ONAM=On)")
+}
