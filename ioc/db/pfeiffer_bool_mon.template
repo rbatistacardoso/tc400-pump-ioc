@@ -1,0 +1,16 @@
+##################################################################
+# Pfeiffer boolean parameter, read-only
+# Macros: P, PORT, ADDR  (from st.cmd)
+#         NAME, PARAM, DESC
+#         TYPE = Bool (type 0, default) | ShortBool (type 7, 0/1)
+#         SCAN (default 2 second)
+##################################################################
+
+record(bi, "$(P)$(NAME)-Mon") {
+    field(DESC, "$(DESC)")
+    field(DTYP, "stream")
+    field(INP,  "@pfeiffer.proto get$(TYPE=Bool)($(ADDR),$(PARAM)) $(PORT)")
+    field(SCAN, "$(SCAN=2 second)")
+    field(ZNAM, "$(ZNAM=Off)")
+    field(ONAM, "$(ONAM=On)")
+}

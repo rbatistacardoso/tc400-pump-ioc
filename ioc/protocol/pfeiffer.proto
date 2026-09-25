@@ -1,0 +1,67 @@
+##################################################################
+# Pfeiffer Vacuum protocol (RS-485 drive units: TC 110/400/1200...)
+#
+# Arguments:  $1 = unit address, 3 digits (e.g. 001)
+#             $2 = parameter number, 3 digits (e.g. 309)
+#
+# Telegram:   query    aaa 00 ppp 02 =?     sss CR
+#             command  aaa 10 ppp ll <data> sss CR
+#             reply    aaa 10 ppp ll <data> sss CR
+#             sss = sum of all ASCII values mod 256, 3 decimal digits
+#                   (%+<sum> -> zero-padded decimal)
+#
+# One protocol per Pfeiffer data type, not per parameter.
+# Errors (NO_DEF, _RANGE, _LOGIC) cause an input mismatch -> alarm.
+# set* replies are checked but skipped (%*): parsing the echo into
+# VAL would overwrite a put that arrived while the record was busy,
+# and RPRO would then re-send the old value.
+##################################################################
+
+Terminator   = CR;
+ReplyTimeout = 1000;
+ReadTimeout  = 100;
+
+# --- Type 0: boolean_old, 6 chars (000000 / 111111) -------------
+getBool {
+    out "\$1" "00" "\$2" "02=?" "%+<sum>";
+    in  "\$1" "10" "\$2" "06" "%{000000|111111}" "%+<sum>";
+}
+setBool {
+    out "\$1" "10" "\$2" "06" "%{000000|111111}" "%+<sum>";
+    in  "\$1" "10" "\$2" "06" "%*{000000|111111}" "%+<sum>";
+    @init { getBool; }
+}
+# Write-only "true" (e.g. P009 error acknowledgement)
+sendTrue {
+    out "\$1" "10" "\$2" "06" "111111" "%+<sum>";
+    in  "\$1" "10" "\$2" "06" "111111" "%+<sum>";
+}
+
+# --- Type 7: u_short_int, 3 digits, used as boolean (000 / 001) --
+getShortBool {
+    out "\$1" "00" "\$2" "02=?" "%+<sum>";
+    in  "\$1" "10" "\$2" "03" "%{000|001}" "%+<sum>";
+}
+setShortBool {
+    out "\$1" "10" "\$2" "03" "%{000|001}" "%+<sum>";
+    in  "\$1" "10" "\$2" "03" "%*{000|001}" "%+<sum>";
+    @init { getShortBool; }
+}
+
+# --- Types 1/2: u_integer / u_real, 6 digits ---------------------
+# Read as double so the record applies ASLO (u_real: ASLO=0.01).
+getNum {
+    out "\$1" "00" "\$2" "02=?" "%+<sum>";
+    in  "\$1" "10" "\$2" "06" "%6f" "%+<sum>";
+}
+setNum {
+    out "\$1" "10" "\$2" "06" "%06.0f" "%+<sum>";
+    in  "\$1" "10" "\$2" "06" "%*6f" "%+<sum>";
+    @init { getNum; }
+}
+
+# --- Type 4: string, 6 chars -------------------------------------
+getStr {
+    out "\$1" "00" "\$2" "02=?" "%+<sum>";
+    in  "\$1" "10" "\$2" "06" "%6c" "%+<sum>";
+}

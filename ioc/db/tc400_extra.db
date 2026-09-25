@@ -1,0 +1,32 @@
+##################################################################
+# Pfeiffer TC 400 — records that don't fit the generic templates
+# Macros: P, PORT, ADDR
+##################################################################
+
+# P349 - Name of electronic drive unit (type 4, string)
+record(stringin, "$(P)Model-Cte") {
+    field(DESC, "Electronic drive unit name")
+    field(DTYP, "stream")
+    field(INP,  "@pfeiffer.proto getStr($(ADDR),349) $(PORT)")
+    field(PINI, "YES")
+}
+
+# P303 - Error code (type 4, string)
+record(stringin, "$(P)ErrorCode-Mon") {
+    field(DESC, "Error code")
+    field(DTYP, "stream")
+    field(INP,  "@pfeiffer.proto getStr($(ADDR),303) $(PORT)")
+    field(SCAN, "2 second")
+}
+
+# P009 - Error acknowledgement (type 0, write-only: always sends 1)
+#        FLNK via CA because ErrorCode-Mon is not Passive
+record(bo, "$(P)ErrorAck-Cmd") {
+    field(DESC, "Acknowledge error")
+    field(DTYP, "stream")
+    field(PRIO, "HIGH")
+    field(OUT,  "@pfeiffer.proto sendTrue($(ADDR),009) $(PORT)")
+    field(ZNAM, "Ack")
+    field(ONAM, "Ack")
+    field(FLNK, "$(P)ErrorCode-Mon.PROC CA")
+}
